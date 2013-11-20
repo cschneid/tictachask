@@ -1,12 +1,12 @@
 module Board where
 
-import Control.Monad
-import System.Random
-import Data.Vector ( Vector, (!), (//), generate, generateM, toList )
-import Data.List (intersperse, intercalate)
+import Control.Monad   (liftM)
+import System.Random   (getStdRandom, randomR)
+import Data.Vector     (Vector, (!), (//), generate, generateM, toList )
+import Data.List       (intersperse, intercalate)
 import Data.List.Split (chunksOf)
-import Data.Monoid
-import Data.Maybe
+import Data.Monoid     (First(..), getFirst, mconcat)
+import Data.Maybe      (isNothing)
 
 data Cell = X | O | EmptyCell Int
 data Winner = Winner Cell
@@ -17,11 +17,13 @@ instance Show Cell where
   show (O)           = "O"
   show (EmptyCell i) = show i
 
+-- X's and O's are equal to the same type, EmptyCell is never equal to anything
 instance Eq Cell where
   X == X = True
   O == O = True
   _ == _ = False
 
+-- Just show the inner cell
 instance Show Winner where
   show (Winner c) = show c
 
@@ -33,9 +35,12 @@ instance Show Board where
       withPipes = map ((" " ++) . intercalate " | ")
       withLines = intersperse "----------"
 
+-- Nice boring empty board
 emptyBoard :: Board
 emptyBoard = Board (generate 9 EmptyCell)
 
+-- Populate the board with a random set of X's and O's. Does not attempt to
+-- balance them out to be a legit board position
 randomBoard :: IO Board
 randomBoard = liftM Board (generateM 9 makeRandomCell)
   where
@@ -56,6 +61,7 @@ boardWon b = getFirst $ mconcat $ map (First . won b) winningLines
                              then Just $ Winner $ cells ! head line
                              else Nothing
 
+-- Is this board position a tie?
 boardTie :: Board -> Bool
 boardTie b = allCellsFilled b && isNothing (boardWon b)
   where
@@ -64,6 +70,7 @@ boardTie b = allCellsFilled b && isNothing (boardWon b)
       EmptyCell _ -> False
       _           -> True
 
+-- Given a list of things, are all of them the same?
 allSame :: Eq a => [a] -> Bool
 allSame xs = all (== head xs) (tail xs)
 

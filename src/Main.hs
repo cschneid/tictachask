@@ -2,8 +2,9 @@ module Main where
 
 import Board
 import Player
-import System.Exit
-import Control.Monad
+
+import System.Exit   (exitSuccess)
+import Control.Monad (liftM)
 
 main :: IO ()
 main = play emptyBoard [Player X, Player O]
@@ -20,7 +21,6 @@ play b (p1:p2:_) = do
       if boardTie newBoard
         then handleTie newBoard
         else handleNextMove newBoard p1 p2
-
 
 makeMove :: Board -> Player -> IO Board
 makeMove b (Player c) = do
@@ -48,6 +48,7 @@ handleTie :: Board -> IO ()
 handleTie b = do
   putStrLn "It's a tie! Play again soon!"
   print b
+  exitSuccess
 
 handleNextMove :: Board -> Player -> Player -> IO ()
 handleNextMove b p1 p2 = do
